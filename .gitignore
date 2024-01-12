@@ -1,0 +1,12 @@
+# 忽略vscode配置文件
+.vscode
+
+# 忽略构建目录
+target
+
+# 忽略dist目录
+dist
+
+# 忽略配置文件
+leptosfmt.toml
+rustfmt.toml
