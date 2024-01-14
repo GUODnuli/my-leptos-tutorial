@@ -6,31 +6,22 @@ fn main() {
 
 #[component]
 fn App() -> impl IntoView {
-    let (count, set_count) = create_signal(0);
+    let (x, set_x) = create_signal(0);
 
     view! {
         <button 
-            on:click=move|_| { set_count.update(|n| *n += 1); }
-            class:red=move || count()%2 == 1
+            on:click=move|_| { set_x.update(|n| *n += 10); }
             style="position:absolute"
             style:left=move || format!("{}px", x() + 100)
             style:backgroud-color=move || format!("rgb({}, {}, 100)", x(), 100)
-            style
+            style:max-width="400px"
+            style=("--columns", x)
         >
-            "Click me: "
-            {count}
+            "Click to Move"
         </button>
-        <p>
-            <strong>"Reactive: "</strong>
-            {move || count.get()}
-        </p>
-        <p>
-            <strong>"Reactive shorthand: "</strong>
-            {count}
-        </p>
-        <p>
-            <strong>"Not reactive: "</strong>
-            {count()}
-        </p>
+        <progress
+            max="50"
+            value=count
+        />
     }
 }
