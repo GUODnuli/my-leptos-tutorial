@@ -17,16 +17,26 @@ fn App() -> impl IntoView {
             "Click me"
         </button>
         <br/>
-        <progress
-            max="50"
-            value=count
+        <ProgressBar
+            progress=count
         />
         <br/>
-        <progress
-            max="50"
-            value=double_count
+        <ProgressBar
+            progress=double_count
         />
-        <p>"Count: " {count()}</p>
+        <p>"Count: " {count}</p>
         <p>"Double Count: " {double_count}</p>
+    }
+}
+
+#[component]
+fn ProgressBar<F>(#[prop(default = 100)] max: u16, progress: F) -> impl IntoView
+    where F: Fn() -> i32 + 'static,
+{
+    view! {
+        <progress
+            max=max
+            value=progress
+        />
     }
 }
