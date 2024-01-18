@@ -1,4 +1,5 @@
 use leptos::*;
+use std::marker::PhantomData;
 
 fn main() {
     leptos::mount_to_body(App)
@@ -26,6 +27,10 @@ fn App() -> impl IntoView {
         />
         <p>"Count: " {count}</p>
         <p>"Double Count: " {double_count}</p>
+
+        <SizeOf<usize>/>
+        <br/>
+        <SizeOf<String>/>
     }
 }
 
@@ -39,4 +44,9 @@ fn ProgressBar<F>(#[prop(default = 100)] max: u16, progress: F) -> impl IntoView
             value=progress
         />
     }
+}
+
+#[component]
+fn SizeOf<T: Sized>(#[prop(optional)] _ty: PhantomData<T>) -> impl IntoView {
+    std::mem::size_of::<T>()
 }
