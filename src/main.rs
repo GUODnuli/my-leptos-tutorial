@@ -1,3 +1,4 @@
+#[allow(unused)]
 use leptos::*;
 use std::marker::PhantomData;
 
@@ -9,6 +10,22 @@ fn main() {
 fn App() -> impl IntoView {
     let (count, set_count) = create_signal(0);
     let double_count = move || count() *2;
+    let values = vec![0, 1, 2];
+    let length = 5;
+    let counters = (1..=length).map(|idx| create_signal(idx));
+    let counter_buttons = counters
+        .map(|(count, set_count)|{
+            view! {
+                <li>
+                    <button
+                        on:click=move |_| set_count.update(|n| *n+= 1)
+                    >
+                        {count}
+                    </button>
+                </li>
+            }
+        })
+        .collect_view();
 
     view! {
         <button 
@@ -25,12 +42,33 @@ fn App() -> impl IntoView {
         <ProgressBar
             progress=double_count
         />
+        <br/>
+        <ProgressBar2
+            progress=Signal::derive(double_count)
+        />
+        <br/>
+        <ProgressBar3 />
         <p>"Count: " {count}</p>
         <p>"Double Count: " {double_count}</p>
 
-        <SizeOf<usize>/>
-        <br/>
-        <SizeOf<String>/>
+        // <SizeOf<usize>/>
+        // <br/>
+        // <SizeOf<String>/>
+
+        // this will just render "012"
+        // <p>{values.clone()}</p>
+        // or we can wrap them in <li>
+        // <ul>
+        //     {values.into_iter()
+        //         .map(|n| view! { <li>{n}</li> } )
+        //         .collect::<Vec<_>>()
+        //     }
+        // </ul>
+        <ul>{counter_buttons}</ul>
+
+        <h2>"Dynamic List"</h2>
+        <p>"Use this pattern if the rows in your list will change."</p>
+        <DynamicList initial_length=5/>
     }
 }
 
@@ -47,6 +85,102 @@ fn ProgressBar<F>(#[prop(default = 100)] max: u16, progress: F) -> impl IntoView
 }
 
 #[component]
+fn ProgressBar2(#[prop(default = 100)] max: u16, #[prop(into)] progress: Signal<i32>) -> impl IntoView {
+    view! {
+        <progress
+            max=max
+            value=progress
+        />
+    }
+}
+
+#[component]
+fn ProgressBar3(#[prop(default = 100)] max: u16, #[prop(optional)] progress: Option<Box<dyn Fn() -> i32>>) -> impl IntoView
+{
+    progress.map(|progress| {
+        view! {
+            <progress
+                max=max
+                value=progress
+            />
+        }
+    })
+}
+
+/// Shows progress toward a goal.
+#[component]
+fn ProgressBar4(
+    /// The maximum value of the progress bar.
+    #[prop(default = 100)]
+    max: u16,
+    /// How much progress should be displayed.
+    #[prop(into)]
+    progress: Signal<i32>,
+) -> impl IntoView {
+    /* ... */
+}
+
+#[component]
 fn SizeOf<T: Sized>(#[prop(optional)] _ty: PhantomData<T>) -> impl IntoView {
     std::mem::size_of::<T>()
+}
+
+/// A list of counters that allows you to add or
+/// remove counters.
+#[component]
+fn DynamicList(
+    /// The number of counters to begin with.
+    initial_length: usize,
+) -> impl IntoView {
+    let mut next_counter_id = initial_length;
+
+    let initial_counters = (0..initial_length)
+        .map(|id| (id, create_signal(id + 1)))
+        .collect::<Vec<_>>();
+
+    let (counters, set_counters) = create_signal(initial_counters);
+
+    let add_counter = move |_| {
+        let sig = create_signal(next_counter_id + 1);
+
+        set_counters.update(move |counters| {
+            counters.push((next_counter_id, sig))
+        });
+
+        next_counter_id += 1;
+    };
+
+    view! {
+        <div>
+            <button on:click=add_counter>
+                "Add Counter"
+            </button>
+            <ul>
+                <For
+                    each=counters
+                    key=|counter| counter.0
+                    children=move |(id, (count, set_count))| {
+                        view! {
+                            <li>
+                                <button
+                                    on:click=move |_| set_count.update(|n| *n += 1)
+                                >
+                                    {count}
+                                </button>
+                                <button
+                                    on:click=move |_| {
+                                        set_counters.update(|counters| {
+                                            counters.retain(|(counter_id, _)| counter_id != & id)
+                                        });
+                                    }
+                                >
+                                    "Remove"
+                                </button>
+                            </li>
+                        }
+                    }
+                />
+            </ul>
+        </div>
+    }
 }
