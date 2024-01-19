@@ -1,5 +1,6 @@
 #[allow(unused)]
-use leptos::*;
+use leptos::{*, ev::SubmitEvent};
+use leptos::html::Input;
 use std::marker::PhantomData;
 
 #[derive(Debug, Clone)]
@@ -33,6 +34,17 @@ fn App() -> impl IntoView {
             }
         })
         .collect_view();
+    let (control_name, set_control_name) = create_signal("Controlled".to_string());
+    let (name, set_name) = create_signal("Uncontrolled".to_string());
+    let input_element: NodeRef<Input> = create_node_ref();
+    let on_submit = move |ev: SubmitEvent| {
+        ev.prevent_default();
+
+        let value = input_element()
+            .expect("<input> to exist")
+            .value();
+        set_name(value);
+    };
 
     view! {
         <button 
@@ -77,6 +89,31 @@ fn App() -> impl IntoView {
         <p>"Use this pattern if the rows in your list will change."</p>
         <DynamicList initial_length=5/>
         <ComplexData/>
+
+        <br/>
+
+        <input type="text"
+            on:input=move |ev| {
+                set_control_name(event_target_value(&ev));
+            }
+            prop:value=control_name
+        />
+        <p>"Name is: " {control_name}</p>
+
+        <br/>
+
+        <form on:submit=on_submit>
+            <input type="text"
+                value=name
+                node_ref=input_element
+            />
+            <input type="submit" value="Submit"/>
+        </form>
+        <p>"Name is: "{name}</p>
+
+        <br/>
+
+        // <UncontrolledComponent/>
     }
 }
 
@@ -243,5 +280,32 @@ fn ComplexData() -> impl IntoView {
         />
             // <p>{child.value}</p>
         // </For>
+    }
+}
+
+#[component]
+fn UncontrolledComponent() -> impl IntoView {
+    let (name, set_name) = create_signal("Uncontrolled".to_string());
+
+    let input_element: NodeRef<Input> = create_node_ref();
+
+    let on_submit = move |ev: SubmitEvent| {
+        ev.prevent_default();
+
+        let value = input_element()
+            .expect("<input> to exist")
+            .value();
+        set_name(value);
+    };
+
+    view! {
+        <form on:submit=on_submit>
+            <input type="text"
+                value=name
+                node_ref=input_element
+            />
+            <input type="submit" value="Submit"/>
+        </form>
+        <p>"Name is: " {name}</p>
     }
 }
