@@ -2,6 +2,13 @@
 use leptos::*;
 use std::marker::PhantomData;
 
+#[derive(Debug, Clone)]
+struct DatabaseEntry {
+    key: String,
+    // value: RwSignal<i32>,
+    value: i32
+}
+
 fn main() {
     leptos::mount_to_body(App)
 }
@@ -69,6 +76,7 @@ fn App() -> impl IntoView {
         <h2>"Dynamic List"</h2>
         <p>"Use this pattern if the rows in your list will change."</p>
         <DynamicList initial_length=5/>
+        <ComplexData/>
     }
 }
 
@@ -182,5 +190,58 @@ fn DynamicList(
                 />
             </ul>
         </div>
+    }
+}
+
+#[component]
+fn ComplexData() -> impl IntoView {
+    let (data, set_data) = create_signal(vec![
+        DatabaseEntry {
+            key: "foo".to_string(),
+            // value: create_rw_signal(10),
+            value: 10,
+        },
+        DatabaseEntry {
+            key: "bar".to_string(),
+            // value: create_rw_signal(20),
+            value: 20,
+        },
+        DatabaseEntry {
+            key: "baz".to_string(),
+            // value: create_rw_signal(15),
+            value: 15,
+        },
+    ]);
+
+    view! {
+        <button on:click=move |_| {
+            set_data.update(|data| {
+            // data.with(|data| {
+                for row in data {
+                    // row.value.update(|val| *val *= 2);
+                    row.value *= 2;
+                }
+            });
+            logging::log!("{:?}", data.get());
+        }>
+            "Update Values"
+        </button>
+        <For
+            // each=data
+            // key=|state| state.key.clone()
+            // let:child
+            each=move || data().into_iter().enumerate()
+            key=|(_, state)| state.key.clone()
+            children=move |(index, _)| {
+                let value = create_memo(move |_| {
+                    data.with(|data| data.get(index).map(|d| d.value).unwrap_or(0))
+                });
+                view! {
+                    <p>{value}</p>
+                }
+            }
+        />
+            // <p>{child.value}</p>
+        // </For>
     }
 }
