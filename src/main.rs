@@ -45,6 +45,7 @@ fn App() -> impl IntoView {
             .value();
         set_name(value);
     };
+    let (value, set_value) = create_signal("B".to_string());
 
     view! {
         <button 
@@ -114,6 +115,26 @@ fn App() -> impl IntoView {
         <br/>
 
         // <UncontrolledComponent/>
+
+        <textarea
+            prop:value=control_name
+            on:input=move |ev| {
+                set_control_name(event_target_value(&ev));
+            }
+        >
+            {untrack(move || control_name.get())}
+        </textarea>
+
+        <br/>
+
+        <select on:change=move |ev| {
+            let new_value = event_target_value(&ev);
+            set_value(new_value);
+        }>
+            <SelectOption is="A" value/>
+            <SelectOption value is="B"/>
+            <SelectOption value is="C"/>
+        </select>
     }
 }
 
@@ -307,5 +328,17 @@ fn UncontrolledComponent() -> impl IntoView {
             <input type="submit" value="Submit"/>
         </form>
         <p>"Name is: " {name}</p>
+    }
+}
+
+#[component]
+fn SelectOption(is: &'static str, value: ReadSignal<String>) -> impl IntoView {
+    view! {
+        <option
+            value=is
+            selected=move || value() == is
+        >
+            {is}
+        </option>
     }
 }
