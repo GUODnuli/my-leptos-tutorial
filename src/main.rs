@@ -1,6 +1,6 @@
 #[allow(unused)]
 use leptos::{*, ev::SubmitEvent};
-use leptos::html::Input;
+use leptos::{html::Input, svg::view};
 use std::marker::PhantomData;
 
 #[derive(Debug, Clone)]
@@ -46,6 +46,7 @@ fn App() -> impl IntoView {
         set_name(value);
     };
     let (value, set_value) = create_signal("B".to_string());
+    let (check_value, set_check_value) = create_signal(0);
 
     view! {
         <button 
@@ -135,6 +136,10 @@ fn App() -> impl IntoView {
             <SelectOption value is="B"/>
             <SelectOption value is="C"/>
         </select>
+
+        <br/>
+
+        <CheckOdd value=check_value/>
     }
 }
 
@@ -340,5 +345,20 @@ fn SelectOption(is: &'static str, value: ReadSignal<String>) -> impl IntoView {
         >
             {is}
         </option>
+    }
+}
+
+#[component]
+fn CheckOdd(value: ReadSignal<i32>) -> impl IntoView {
+    let is_odd = move || value() & 1 == 1;
+
+    view! {
+        <p>
+            {move || if is_odd() {
+                "Odd"
+            } else {
+                "Even"
+            }}
+        </p>
     }
 }
