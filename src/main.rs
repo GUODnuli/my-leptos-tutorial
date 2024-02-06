@@ -47,6 +47,7 @@ fn App() -> impl IntoView {
     };
     let (value, set_value) = create_signal("B".to_string());
     let (check_value, set_check_value) = create_signal(0);
+    let (option_value, set_option_value) = create_signal(0);
 
     view! {
         <button 
@@ -139,7 +140,19 @@ fn App() -> impl IntoView {
 
         <br/>
 
-        <CheckOdd value=check_value/>
+        <CheckOddIf value=check_value/>
+        
+        <br/>
+
+        <CheckOddOption value=option_value set_value=set_option_value/>
+
+        <br/>
+
+        <MatchStatements value=option_value set_value=set_option_value/>
+
+        <br/>
+
+        <ReturndifferentHTML value=option_value set_value=set_option_value/>
     }
 }
 
@@ -349,7 +362,7 @@ fn SelectOption(is: &'static str, value: ReadSignal<String>) -> impl IntoView {
 }
 
 #[component]
-fn CheckOdd(value: ReadSignal<i32>) -> impl IntoView {
+fn CheckOddIf(value: ReadSignal<i32>) -> impl IntoView {
     let is_odd = move || value() & 1 == 1;
 
     view! {
@@ -360,5 +373,67 @@ fn CheckOdd(value: ReadSignal<i32>) -> impl IntoView {
                 "Even"
             }}
         </p>
+    }
+}
+
+#[component]
+fn CheckOddOption(value: ReadSignal<i32>, set_value: WriteSignal<i32>) -> impl IntoView {
+    let is_odd = move || value() & 1 == 1;
+
+    // let message = move || {
+    //     if is_odd() {
+    //         Some("Ding ding ding!")
+    //     } else {
+    //         None
+    //     }
+    // };
+
+    let message = move || is_odd().then(|| "Ding ding ding!");
+
+    view! {
+        <p>{message}</p>
+        <button 
+            on:click=move|_| { set_value.update(|n| *n += 1); }
+        >
+            "Click me"
+        </button>
+    }
+}
+
+#[component]
+fn MatchStatements(value: ReadSignal<i32>, set_value: WriteSignal<i32>) -> impl IntoView {
+    let is_odd = move || value() & 1 == 1;
+    let message = move || {
+        match value() {
+            0 => "Zero",
+            1 => "One",
+            n if is_odd() => "Odd",
+            _ => "Even"
+        }
+    };
+
+    view! {
+        <p>{message}</p>
+    }
+}
+
+#[component]
+fn ReturndifferentHTML(value: ReadSignal<i32>, set_value: WriteSignal<i32>) -> impl IntoView {
+    let is_odd = move || value() & 1 == 1;
+
+    view! { 
+        <main>
+            {
+                move || match is_odd() {
+                    true if value() == 1 => {
+                        view! { <pre>"One"</pre> }.into_any()
+                    },
+                    false if value() == 2 => {
+                        view! { <pre>"Two"</pre> }.into_any()
+                    },
+                    _ => view! { <textarea>{value()}</textarea> }.into_any()
+                }
+            }
+        </main>
     }
 }
