@@ -1,6 +1,7 @@
 #[allow(unused)]
 use leptos::{*, ev::SubmitEvent};
 use leptos::{html::Input, svg::view};
+use web_sys::MouseEvent;
 use std::marker::PhantomData;
 
 #[derive(Debug, Clone)]
@@ -48,6 +49,8 @@ fn App() -> impl IntoView {
     let (value, set_value) = create_signal("B".to_string());
     let (check_value, set_check_value) = create_signal(0);
     let (option_value, set_option_value) = create_signal(0);
+    let (toggled, set_toggled) = create_signal(false);
+    provide_context(set_toggled);
 
     view! {
         <button 
@@ -157,6 +160,15 @@ fn App() -> impl IntoView {
         <br/>
 
         <NumericInput/>
+
+        <br/>
+
+        <p>"Toggled? " {toggled}</p>
+        <ButtonA setter=set_toggled/>
+        <ButtonB on_click=move |_| set_toggled.update(|value| *value = !*value)/>
+        <ButtonC on_click=move |_| set_toggled.update(|value| *value = !*value)/>
+        <ButtonD on:click=move |_| set_toggled.update(|value| *value = !*value)/>
+        <Layout/>
     }
 }
 
@@ -474,5 +486,78 @@ fn NumericInput() -> impl IntoView {
                 <p>"You entered " <strong>{value}</strong></p>
             </ErrorBoundary>    
         </label>
+    }
+}
+
+#[component]
+pub fn ButtonA(setter: WriteSignal<bool>) -> impl IntoView {
+    view! {
+        <button
+            on:click=move |_| setter.update(|value| *value = !*value)
+        >
+            "Toggle"
+        </button>
+    }
+}
+
+#[component]
+pub fn ButtonB(#[prop(into)] on_click: Callback<MouseEvent>) -> impl IntoView {
+    view! {
+        <button on:click=on_click>
+            "Toggle"
+        </button>
+    }
+}
+
+#[component]
+pub fn ButtonC<F>(on_click: F) -> impl IntoView
+    where F: Fn(MouseEvent) + 'static
+{
+    view! {
+        <button on:click=on_click>
+            "Toggle"
+        </button>
+    }
+}
+
+#[component]
+pub fn ButtonD() -> impl IntoView {
+    view! {
+        <button>"Toggle"</button>
+    }
+}
+
+#[component]
+pub fn Layout() -> impl IntoView {
+    view! {
+        <header>
+            <h1>"My Page"</h1>
+        </header>
+        <main>
+            <Content/>
+        </main>
+    }
+}
+
+#[component]
+pub fn Content() -> impl IntoView {
+    view! {
+        <div class="content">
+            <ButtonE/>
+        </div>
+    }
+}
+
+#[component]
+pub fn ButtonE() -> impl IntoView {
+    let setter = use_context::<WriteSignal<bool>>()
+        .expect("to have found the setter provided.");
+
+    view! {
+        <button
+            on:click=move |_| setter.update(|value| *value = !*value)
+        >
+            "Toggle"
+        </button>
     }
 }
