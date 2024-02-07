@@ -169,6 +169,21 @@ fn App() -> impl IntoView {
         <ButtonC on_click=move |_| set_toggled.update(|value| *value = !*value)/>
         <ButtonD on:click=move |_| set_toggled.update(|value| *value = !*value)/>
         <Layout/>
+
+        <br/>
+
+        <TakesChildren render_prop=|| view! { <p>"Hi, there"</p> }>
+            "Some text"
+            <span>"A span"</span>
+        </TakesChildren>
+
+        <br/>
+
+        <WrapsChildren>
+            "A"
+            "B"
+            "C"
+        </WrapsChildren>
     }
 }
 
@@ -560,4 +575,35 @@ pub fn ButtonE() -> impl IntoView {
             "Toggle"
         </button>
     }
+}
+
+#[component]
+pub fn TakesChildren<F, IV>(
+    render_prop: F,
+    children: Children,
+) -> impl IntoView
+where
+    F: Fn() -> IV,
+    IV: IntoView,
+{
+    view! {
+        <h2>"Render Prop"</h2>
+        {render_prop()}
+
+        <h2>"Children"</h2>
+        {children()}
+    }
+}
+
+#[component]
+pub fn WrapsChildren(children: Children) -> impl IntoView {
+    let children = children()
+        .nodes
+        .into_iter()
+        .map(|child| view! {
+            <li>{child}</li>
+        })
+        .collect_view();
+
+    view! { <ul>{children}</ul> }
 }
