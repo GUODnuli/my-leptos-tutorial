@@ -51,6 +51,24 @@ fn App() -> impl IntoView {
     let (option_value, set_option_value) = create_signal(0);
     let (toggled, set_toggled) = create_signal(false);
     provide_context(set_toggled);
+    let (names, set_names) =create_signal(Vec::new());
+    // This's a low efficiency method.
+    // if names().is_empty() {
+    //     set_names(vec!["Alice".to_string()]);
+    // }
+    //
+    // The first high efficiency method.
+    // if names.with(|names| names.is_empty()) {
+    //     set_names.update(|names| names.push("Alice".to_string()));
+    // }
+    //
+    // Another high efficiency method.
+    if names.with(Vec::is_empty(&self)) {
+        set_names.update(|names| names.push("Alice".to_string()));
+    }
+    let (first, _) = create_signal("Bob".to_string());
+    let (middle, _) = create_signal("J.".to_string());
+    let (last, _) = create_signal("Smith".to_string());
 
     view! {
         <button 
@@ -607,3 +625,17 @@ pub fn WrapsChildren(children: Children) -> impl IntoView {
 
     view! { <ul>{children}</ul> }
 }
+
+#[component]
+fn ConcatenateName(first: ReadSignal<String>, middle: ReadSignal<String>, last: ReadSignal<String>) -> impl IntoView {
+    // The low efficiency method.
+    // let name = move || {
+    //     first.with(|first| {
+    //         middle.with(|middle| last.with(|last| format!("{first} {middle} {last}")))
+    //     })
+    // };
+    //
+    // The hgih efficiency and simple method.
+    let name = move || with!(|first, middle, last| format!("{first} {middle} {last}"));
+}
+
