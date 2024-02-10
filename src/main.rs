@@ -1,4 +1,4 @@
-#[allow(unused)]
+#![allow(unused)]
 use leptos::{*, ev::SubmitEvent};
 use leptos::{html::Input, svg::view};
 use web_sys::MouseEvent;
@@ -63,12 +63,29 @@ fn App() -> impl IntoView {
     // }
     //
     // Another high efficiency method.
-    if names.with(Vec::is_empty(&self)) {
+    if names.with(Vec::is_empty) {
         set_names.update(|names| names.push("Alice".to_string()));
     }
     let (first, _) = create_signal("Bob".to_string());
     let (middle, _) = create_signal("J.".to_string());
     let (last, _) = create_signal("Smith".to_string());
+    // Making signals depend on each other
+    // 1. B is a function of A.
+    let (making_count, set_making_count) = create_signal(1);
+    let derived_signal_double_count = move || making_count() * 2;
+    let memoized_double_count = create_memo(move |_| making_count() * 2);
+    // 2. C is a function of A and some other thing B.
+    let (first_name, set_first_name) = create_signal("Bridget".to_string());
+    let (last_name, set_last_name) = create_signal("Jones".to_string());
+    let full_name = move || with!(|first_name, last_name| format!("{first_name} {last_name}"));
+    // 3. A and B are independent signals, but sometimes updated at the same time.
+    let (age, set_age) = create_signal(32);
+    let (favorite_number, set_favorite_number) = create_signal(42);
+    // use this to handle a click on a `Clear` button
+    // let clear_handler = move |_| {
+    //     set_age(0);
+    //     set_favorite_number(0);
+    // };
 
     view! {
         <button 
@@ -637,5 +654,7 @@ fn ConcatenateName(first: ReadSignal<String>, middle: ReadSignal<String>, last: 
     //
     // The hgih efficiency and simple method.
     let name = move || with!(|first, middle, last| format!("{first} {middle} {last}"));
+
+    view! {}
 }
 
