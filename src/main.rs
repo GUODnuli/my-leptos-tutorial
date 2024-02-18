@@ -219,6 +219,8 @@ fn App() -> impl IntoView {
             "B"
             "C"
         </WrapsChildren>
+
+        <AsyncData/>
     }
 }
 
@@ -658,3 +660,49 @@ fn ConcatenateName(first: ReadSignal<String>, middle: ReadSignal<String>, last: 
     view! {}
 }
 
+#[component]
+fn AsyncData() -> impl IntoView {
+    let (count, set_count) = create_signal(0);
+
+    async fn load_data(num: i32) -> i32 {
+        num + 1
+    }
+
+    let async_data = create_resource(
+        count,
+        |value| async move {
+            logging::log!("loading data from API");
+            load_data(value).await
+        },
+    );
+
+    view! {
+        <h1>"My Data"</h1>
+        {move || match async_data.get() {
+            None => view! { <p>"Loading..."</p> }.into_view(),
+            Some(data) => view! { <p>{data}</p> }.into_view(),
+        }}
+    }
+}
+
+#[component]
+pub fn LoggedIn<F, IV>(fallback: F, children: ChildrenFn) -> impl IntoView
+where
+    F: Fn() -> IV + 'static,
+    IV: IntoView,
+{
+    let fallback = store_value(fallback);
+    let children = store_value(children);
+    view! {
+        <Suspense
+            fallback=|| ()
+        >
+            <Show
+                when=move || todo!()
+                fallback=move || fallback.with_value(|fallback| fallback())
+            >
+                {children.with_value(|children| children())}
+            </Show>
+        </Suspense>
+    }
+}
